@@ -1,6 +1,10 @@
 SES KAYITLARI — bu klasöre atılacak dosyalar
 =============================================
 
+DURUM: 18 kayıt yüklendi ve oyuna bağlandı. Eksik olan tek dosya: kazandi (final ekranı, "İYİ Kİ DOĞDUUUN!").
+Yeni bir kayıt eklersen veya birini değiştirirsen söyle; başlangıç/bitiş ve ses seviyesi
+index.html içindeki SES_LISTE tablosunda dosya başına ayarlanıyor, yeniden ölçmem gerekir.
+
 Nasıl çalışır
 -------------
 - Telefonun ses kaydedicisiyle kaydet, dosyayı aşağıdaki isimle bu "ses" klasörüne koy.

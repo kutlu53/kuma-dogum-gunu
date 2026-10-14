@@ -268,27 +268,94 @@ function yukle(ad, src){ return new Promise(r => { const i = new Image(); i.onlo
 Promise.all([yukle('kuma','img/kuma_kafa.png'), yukle('mahmut','img/mahmut_kafa.png')]).then(() => { arkaPlanCiz(); ciz(); });
 
 /* ---------- ses (WebAudio, dosya yok) ---------- */
-let actx;
-function ses(){ try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); } catch(e){} return actx; }
+let actx, sfxGain;
+function ses(){
+  try {
+    if(!actx){ actx = new (window.AudioContext || window.webkitAudioContext)(); sfxGain = actx.createGain(); sfxGain.connect(actx.destination); sesleriYukle(); }
+    if (actx.state === 'suspended') actx.resume();
+  } catch(e){}
+  return actx;
+}
+function cikis(a){ return sfxGain || a.destination; }   // sentez efektler bu kanaldan çıkar; konuşma sırasında kısılır
 function ton(f1, f2, dur, tip='sine', vol=0.15){
   const a = ses(); if(!a) return;
   const o = a.createOscillator(), g = a.createGain(); o.type = tip; o.frequency.setValueAtTime(f1, a.currentTime);
   o.frequency.exponentialRampToValueAtTime(Math.max(20,f2), a.currentTime + dur); g.gain.setValueAtTime(vol, a.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + dur); o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime + dur);
+  g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + dur); o.connect(g); g.connect(cikis(a)); o.start(); o.stop(a.currentTime + dur);
 }
 function gurultu(dur, vol=0.2, filtre=800){
   const a = ses(); if(!a) return;
   const n = Math.floor(a.sampleRate * dur), b = a.createBuffer(1, n, a.sampleRate), d = b.getChannelData(0);
   for(let i=0;i<n;i++) d[i] = (Math.random()*2-1) * (1 - i/n);
   const s = a.createBufferSource(); s.buffer = b; const f = a.createBiquadFilter(); f.type='lowpass'; f.frequency.value = filtre;
-  const g = a.createGain(); g.gain.value = vol; s.connect(f); f.connect(g); g.connect(a.destination); s.start();
+  const g = a.createGain(); g.gain.value = vol; s.connect(f); f.connect(g); g.connect(cikis(a)); s.start();
 }
-/* ---------- ses dosyaları: ses/ klasörüne koyarsan kullanılır, yoksa sentez sese düşer ---------- */
-const SES_DOSYA = {};
-const SES_ADLAR = ['kuma_gaz','kuma_lahmacun','kuma_tukur','kuma_sumuk','kuma_vurus','kuma_ah','mahmut_zekiyim','mahmut_dis','mahmut_duman','mahmut_gozluk','mahmut_ah','mahmut_koku','mahmut_aci','mahmut_kor','mahmut_yapis','mahmut_pes','mahmut_kazandi','dalas','kazandi'];
-SES_ADLAR.forEach(ad => { const dene = i => { const ext = ['mp3','m4a','ogg','wav'][i]; if(!ext) return; const au = new Audio(); au.preload = 'auto'; au.oncanplaythrough = () => { SES_DOSYA[ad] = au; }; au.onerror = () => dene(i+1); au.src = `ses/${ad}.${ext}`; }; dene(0); });
-function cal(ad, vol=1){ const au = SES_DOSYA[ad]; if(!au) return false; try { const k = au.cloneNode(); k.volume = vol; k.play().catch(()=>{}); } catch(e){ return false; } return true; }
-function sesKilidiAc(){ for(const ad in SES_DOSYA){ try { const au = SES_DOSYA[ad]; au.muted = true; au.play().then(() => { au.pause(); au.currentTime = 0; au.muted = false; }).catch(() => { au.muted = false; }); } catch(e){} } }
+
+/* ---------- ses kayıtları: ses/ klasörü. ad: [dosya, başlangıç sn, bitiş sn, kazanç]
+   Başlangıç/bitiş kayıttaki sessizliği atlar, kazanç hepsini aynı seviyeye getirir (ölçülmüş değerler). ---------- */
+const SES_LISTE = {
+  dalas: ['dalas.m4a', 0.29, 2.59, 1.06],
+  kuma_ah: ['kuma_ah.m4a', 0.07, 1.00, 1.22],
+  kuma_gaz: ['kuma_gaz.m4a', 0.29, 1.49, 0.88],
+  kuma_lahmacun: ['kuma_lahmacun.m4a', 0.44, 1.92, 1.01],
+  kuma_sumuk: ['kuma_sumuk.m4a', 0.00, 0.97, 1.1],
+  kuma_tukur: ['kuma_tukur.m4a', 0.00, 0.78, 1.18],
+  kuma_vurus: ['kuma_vurus.m4a', 0.16, 0.87, 1.14],
+  mahmut_aci: ['mahmut_aci.m4a', 0.73, 1.74, 1.07],
+  mahmut_ah: ['mahmut_ah.m4a', 0.03, 0.62, 1.08],
+  mahmut_dis: ['mahmut_dis.m4a', 0.27, 1.44, 1.2],
+  mahmut_duman: ['mahmut_duman.m4a', 0.26, 2.02, 1.14],
+  mahmut_gozluk: ['mahmut_gozluk.m4a', 0.25, 2.66, 1.08],
+  mahmut_kazandi: ['mahmut_kazandi.m4a', 0.00, 2.99, 1.25],
+  mahmut_koku: ['mahmut_koku.m4a', 0.07, 2.74, 1.19],
+  mahmut_kor: ['mahmut_kor.m4a', 0.19, 2.54, 1.41],
+  mahmut_pes: ['mahmut_pes.m4a', 0.21, 4.00, 1.03],
+  mahmut_yapis: ['mahmut_yapis.m4a', 0.28, 1.76, 1.22],
+  mahmut_zekiyim: ['mahmut_zekiyim.m4a', 0.41, 2.33, 1.02],
+  kazandi: ['kazandi.m4a', 0.00, 3.00, 1.0],   // henüz kaydedilmedi; dosya yoksa sentez fanfar çalar
+};
+const SES_TAMPON = {}, SES_HTML = {}; let sesYuklemeBasladi = false;
+function sesleriYukle(){
+  if(sesYuklemeBasladi || !actx) return; sesYuklemeBasladi = true;
+  for(const ad in SES_LISTE){
+    const url = 'ses/' + SES_LISTE[ad][0];
+    fetch(url).then(r => { if(!r.ok) throw 0; return r.arrayBuffer(); }).then(b => actx.decodeAudioData(b)).then(buf => { SES_TAMPON[ad] = buf; })
+      .catch(() => { try { const au = new Audio(); au.preload = 'auto'; au.oncanplaythrough = () => { SES_HTML[ad] = au; }; au.onerror = () => {}; au.src = url; } catch(e){} });   // file:// için yedek yol
+  }
+}
+function sesKilidiAc(){ for(const ad in SES_HTML){ try { const au = SES_HTML[ad]; au.muted = true; au.play().then(() => { au.pause(); au.currentTime = 0; au.muted = false; }).catch(() => { au.muted = false; }); } catch(e){} } }
+
+/* ---------- konuşma kanalı: aynı anda tek replik çalar
+   öncelik 1: vuruş nidası (kanal doluysa atlanır) · 2: güç bağırışı · 3: tepki (bağırış bitince sıraya girer) · 4: spiker · 5: final (her şeyi keser)
+   Dönüş: bu repliğin bitmesine kalan süre (sn), kanal yoksa/atlandıysa 0, dosya hiç yoksa null ---------- */
+const konusma = { kaynak:null, bitis:0, oncelik:0, kuyruk:null, sonNida:0 };
+function sesSure(ad){ const s = SES_LISTE[ad]; return s ? s[2] - s[1] : 0; }
+function konusmaKalan(){ return konusma.kaynak && actx ? Math.max(0, konusma.bitis - actx.currentTime) : 0; }
+function konusmaDurdur(){ if(konusma.kaynak){ try { konusma.kaynak.stop(); } catch(e){} konusma.kaynak = null; } konusma.kuyruk = null; if(sfxGain) sfxGain.gain.setTargetAtTime(1, actx.currentTime, 0.1); }
+function konus(ad, oncelik=2){
+  const a = ses(); if(!a) return null;
+  const buf = SES_TAMPON[ad];
+  if(!buf){   // WebAudio yoksa (file://) basit yedek: HTML Audio
+    const au = SES_HTML[ad]; if(!au) return null;
+    try { const k = au.cloneNode(); k.volume = Math.min(1, SES_LISTE[ad][3]); k.currentTime = SES_LISTE[ad][1]; k.play().catch(()=>{}); } catch(e){}
+    return sesSure(ad);
+  }
+  const t = a.currentTime, kalan = konusmaKalan();
+  if(kalan > 0.12){
+    if(oncelik >= 5 || (oncelik === 4 && konusma.oncelik < 4)) konusmaDurdur();
+    else if(oncelik === 3 || (oncelik === 2 && konusma.oncelik <= 2 && kalan < 0.6)){ konusma.kuyruk = { ad, oncelik }; return kalan + sesSure(ad); }
+    else return 0;
+  }
+  const [dosya, bas, son, kazanc] = SES_LISTE[ad];
+  const src = a.createBufferSource(); src.buffer = buf; const g = a.createGain(); g.gain.value = kazanc; src.connect(g); g.connect(a.destination);
+  src.start(t, bas, son - bas);
+  konusma.kaynak = src; konusma.bitis = t + (son - bas); konusma.oncelik = oncelik;
+  sfxGain.gain.setTargetAtTime(0.35, t, 0.05);
+  src.onended = () => { if(konusma.kaynak !== src) return; konusma.kaynak = null; sfxGain.gain.setTargetAtTime(1, a.currentTime, 0.1); const k = konusma.kuyruk; konusma.kuyruk = null; if(k) konus(k.ad, k.oncelik); };
+  return son - bas;
+}
+function sesli(ad, oncelik, sentez){ const r = konus(ad, oncelik); if(r === null){ if(sentez) sentez(); return 0; } return r; }
+try { ses(); } catch(e){}   // kayıtlar hemen yüklenmeye başlasın (bağlam ilk dokunuşta açılır)
 function osurukSentez(){
   const a = ses(); if(!a) return; const t = a.currentTime;
   const o = a.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(48, t + 0.8);
@@ -301,25 +368,26 @@ const SES = {
   yumruk: () => { gurultu(0.12, 0.3, 500); ton(180, 60, 0.12, 'square', 0.1); },
   blok: () => ton(900, 500, 0.08, 'triangle', 0.1),
   zipla: () => ton(300, 600, 0.12, 'sine', 0.08),
-  gaz: () => { cal('kuma_gaz') || osurukSentez(); },
-  lahmacun: () => { cal('kuma_lahmacun') || (ton(260, 520, 0.3, 'square', 0.1), gurultu(0.25, 0.2, 1500)); },
-  tukur: () => { cal('kuma_tukur') || (gurultu(0.12, 0.12, 4000), setTimeout(() => { gurultu(0.08, 0.3, 3000); ton(1200, 400, 0.08, 'sine', 0.08); }, 140)); },
-  sumuk: () => { cal('kuma_sumuk') || (ton(400, 1000, 0.18, 'sine', 0.1), setTimeout(() => { gurultu(0.35, 0.35, 2500); ton(900, 200, 0.3, 'sawtooth', 0.1); }, 180)); },
-  vurus: () => cal('kuma_vurus', 0.8),
-  duman: () => { cal('mahmut_duman'); gurultu(0.5, 0.25, 400); },
-  dis: () => { cal('mahmut_dis'); [0,60,120].forEach(t=>setTimeout(()=>ton(1500,900,0.05,'square',0.08), t)); },
-  gozluk: () => { cal('mahmut_gozluk'); ton(1200, 1800, 0.15, 'triangle', 0.12); },
-  zekiyim: () => { cal('mahmut_zekiyim') || (ton(350, 800, 0.4, 'square', 0.15), gurultu(0.3, 0.1, 2000)); },
-  hasar: (kim) => { if(kim === mahmut && cal('mahmut_ah')) return; if(kim === kuma && cal('kuma_ah')) return; ton(400, 150, 0.15, 'square', 0.1); },
-  koku: () => { cal('mahmut_koku') || ton(300, 140, 0.35, 'triangle', 0.12); },
-  aci: () => { cal('mahmut_aci') || [0,120,240].forEach((t,i) => setTimeout(() => ton(700 + i*150, 1100 + i*150, 0.18, 'square', 0.1), t)); },
-  kor: () => { cal('mahmut_kor') || ton(500, 300, 0.3, 'triangle', 0.1); },
-  yapis: () => { cal('mahmut_yapis') || ton(220, 120, 0.3, 'sine', 0.1); },
-  pes: () => cal('mahmut_pes'),
-  mahmutKazandi: () => cal('mahmut_kazandi'),
-  dalas: () => { cal('dalas') || ton(660, 660, 0.25, 'square', 0.12); },
+  // dönüş değeri: repliğin bitmesine kalan süre (sn); efektlerin yavaşlama süresi buna bağlanır
+  gaz: () => sesli('kuma_gaz', 2, osurukSentez),
+  lahmacun: () => sesli('kuma_lahmacun', 2, () => { ton(260, 520, 0.3, 'square', 0.1); gurultu(0.25, 0.2, 1500); }),
+  tukur: () => sesli('kuma_tukur', 2, () => { gurultu(0.12, 0.12, 4000); setTimeout(() => { gurultu(0.08, 0.3, 3000); ton(1200, 400, 0.08, 'sine', 0.08); }, 140); }),
+  sumuk: () => sesli('kuma_sumuk', 2, () => { ton(400, 1000, 0.18, 'sine', 0.1); setTimeout(() => { gurultu(0.35, 0.35, 2500); ton(900, 200, 0.3, 'sawtooth', 0.1); }, 180); }),
+  vurus: () => sesli('kuma_vurus', 1),
+  duman: () => { gurultu(0.5, 0.25, 400); return sesli('mahmut_duman', 2); },
+  dis: () => { [0,60,120].forEach(t=>setTimeout(()=>ton(1500,900,0.05,'square',0.08), t)); return sesli('mahmut_dis', 2); },
+  gozluk: () => { ton(1200, 1800, 0.15, 'triangle', 0.12); return sesli('mahmut_gozluk', 2); },
+  zekiyim: () => sesli('mahmut_zekiyim', 2, () => { ton(350, 800, 0.4, 'square', 0.15); gurultu(0.3, 0.1, 2000); }),
+  hasar: (kim) => { const t = performance.now(); if(t - konusma.sonNida > 900){ konusma.sonNida = t; if(sesli(kim === mahmut ? 'mahmut_ah' : 'kuma_ah', 1)) return; } ton(400, 150, 0.15, 'square', 0.1); },
+  koku: () => sesli('mahmut_koku', 3, () => ton(300, 140, 0.35, 'triangle', 0.12)),
+  aci: () => sesli('mahmut_aci', 3, () => [0,120,240].forEach((t,i) => setTimeout(() => ton(700 + i*150, 1100 + i*150, 0.18, 'square', 0.1), t))),
+  kor: () => sesli('mahmut_kor', 3, () => ton(500, 300, 0.3, 'triangle', 0.1)),
+  yapis: () => sesli('mahmut_yapis', 3, () => ton(220, 120, 0.3, 'sine', 0.1)),
+  pes: () => sesli('mahmut_pes', 5),
+  mahmutKazandi: () => sesli('mahmut_kazandi', 5),
+  dalas: () => sesli('dalas', 4, () => ton(660, 660, 0.25, 'square', 0.12)),
   ko: () => { [392,330,262,196].forEach((f,i)=>setTimeout(()=>ton(f,f*0.8,0.3,'triangle',0.18), i*160)); },
-  kazandi: () => { cal('kazandi'); [523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>ton(f,f,0.3,'triangle',0.18), i*120)); },
+  kazandi: () => { sesli('kazandi', 3); [523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>ton(f,f,0.3,'triangle',0.18), i*120)); },
   raunt: () => { ton(440,440,0.12,'square',0.1); setTimeout(()=>ton(660,660,0.25,'square',0.12), 150); },
 };
 
@@ -483,8 +551,8 @@ function macSonu(){
   if(puan.kuma >= AYARLAR.kazanmakIcin){
     durum = 'teslim'; teslimSure = 0; mahmut.durum = 'diz'; mahmut.hp = 0; kuma.durum = 'zafer'; kuma.balon = null;
     const solda = kuma.x <= mahmut.x; kuma.hedefX = W/2 + (solda ? -120 : 120); mahmut.hedefX = W/2 + (solda ? 120 : -120); mahmut.yon = solda ? -1 : 1; kuma.yon = solda ? 1 : -1;
-    laf(mahmut, LAFLAR.mahmutPes, 4); SES.pes(); SES.kazandi(); konfeti(200);
-    setTimeout(finalAc, 4200);
+    const s = SES.pes() || 0; laf(mahmut, LAFLAR.mahmutPes, Math.max(4, s + 0.5)); SES.kazandi(); konfeti(200);
+    setTimeout(finalAc, Math.max(4200, (s + 1.2) * 1000));   // "pes ettim" repliği bitmeden final açılmaz
   } else {
     kayip++; try { localStorage.setItem('kuma_kayip', kayip); } catch(e){}
     durum = 'giris'; SES.mahmutKazandi(); $('#ortu-kayip').classList.add('acik');
@@ -517,7 +585,9 @@ function hasar(hedef, saldiran, dmg, yon, o={}){
     sarsinti = Math.max(sarsinti, dmg > 10 ? 8 : 4);
     if(o.donma){ yavasSure = Math.max(yavasSure, o.donma); yavasOran = 0; }   // vuruş anı donması
     if(o.tepki){   // Mahmut'un komik tepkisi: burun tutma, acı, kör, yapışkan
-      hedef.tepki = o.tepki; hedef.tepkiSure = o.tepkiSure || 2.2; TEPKI_SES[o.tepki]();
+      const s = TEPKI_SES[o.tepki]();   // tepki repliği (bağırış sürüyorsa onun ardına sıralanır); ekran replik bitene kadar yavaşlar
+      hedef.tepki = o.tepki; hedef.tepkiSure = Math.max(o.tepkiSure || 2.2, s * 0.35 + 1.2);
+      if(s > 0) efekt({ yavas:Math.min(s, 2.6), oran:0.33, zoom:1.4, x:hedef.x, y:hedef.y-90, sure:Math.min(s, 2.6) });
       if(o.komik) komik(o.komik, hedef.x, hedef.y - 165, o.komikRenk || '#fff', 42, 0.1);
       const liste = { burun: LAFLAR.mahmutBurun, aci: LAFLAR.mahmutAci, kor: LAFLAR.mahmutKor, yapis: LAFLAR.mahmutYapis }[o.tepki];
       if(hedef === mahmut && liste) laf(mahmut, sec(liste), 2);
@@ -534,20 +604,20 @@ function parca(x, y, n, renk){ for(let i=0;i<n;i++) parcalar.push({ x, y, vx:rnd
 /* ---------- özel güçler ---------- */
 const OZEL = {
   // Kuma Ayısı
-  s1(d){ SES.gaz(); laf(d, sec(LAFLAR.kumaGaz));
-    efekt({ yavas:0.75, oran:0.28, zoom:1.6, x:d.x, y:d.y-70, sure:0.75, flas:'#7fc23a', flasA:0.3, sars:10 });
+  s1(d){ const s = SES.gaz(); laf(d, sec(LAFLAR.kumaGaz));
+    efekt({ yavas:clamp(s, 0.75, 1.6), oran:0.28, zoom:1.6, x:d.x, y:d.y-70, sure:clamp(s, 0.75, 1.6), flas:'#7fc23a', flasA:0.3, sars:10 });
     komik('PIIIRRRRT!', d.x - d.yon*30, d.y-175, '#9ad24a', 56, d.yon*0.14);
     bulutlar.push({ tip:'gaz', x:d.x - d.yon*20, y:d.y-60, r:105, omur:1.3, t:0, sahip:d, dmg:12, vurdu:false, renk:'rgba(140,210,60,0.55)', sersem:0.8 }); for(let i=0;i<18;i++) parca(d.x - d.yon*25, d.y-50, 1, '#9ad24a'); },
-  s2(d){ SES.lahmacun(); laf(d, sec(LAFLAR.kumaLahmacun));
-    efekt({ yavas:0.4, oran:0.35, zoom:1.35, x:d.x + d.yon*40, y:d.y-85, sure:0.45, sars:4 });
+  s2(d){ const s = SES.lahmacun(); laf(d, sec(LAFLAR.kumaLahmacun));
+    efekt({ yavas:clamp(s, 0.4, 1.6), oran:0.35, zoom:1.35, x:d.x + d.yon*40, y:d.y-85, sure:clamp(s, 0.45, 1.6), sars:4 });
     komik('LAHMACUUUN!', d.x, d.y-175, '#ff9a3c', 46, -d.yon*0.1);
     mermiler.push({ tip:'lahmacun', x:d.x + d.yon*30, y:d.y-85, vx:d.yon*8.5, vy:-1.2, g:0.06, r:16, dmg:14, sahip:d, don:0 }); },
-  s3(d){ SES.tukur(); laf(d, sec(LAFLAR.kumaTukur));
-    efekt({ zoom:1.25, x:d.x + d.yon*30, y:d.y-100, sure:0.25, sars:3 });
+  s3(d){ const s = SES.tukur(); laf(d, sec(LAFLAR.kumaTukur));
+    efekt({ yavas:Math.min(s, 1.0), oran:0.4, zoom:1.25, x:d.x + d.yon*30, y:d.y-100, sure:Math.max(0.25, Math.min(s, 1.0)), sars:3 });
     komik('TÜÜÜH!', d.x + d.yon*60, d.y-150, '#9ad7ff', 40, d.yon*0.12);
     mermiler.push({ tip:'tukuruk', x:d.x + d.yon*26, y:d.y-105, vx:d.yon*12, vy:0, g:0.02, r:7, dmg:5, sahip:d }); },
-  s4(d){ SES.sumuk(); laf(d, sec(LAFLAR.kumaSumuk));
-    efekt({ zoom:1.3, x:d.x, y:d.y-95, sure:0.35, sars:9, flas:'#7fc23a', flasA:0.15 });
+  s4(d){ const s = SES.sumuk(); laf(d, sec(LAFLAR.kumaSumuk));
+    efekt({ yavas:Math.min(s, 1.1), oran:0.4, zoom:1.3, x:d.x, y:d.y-95, sure:Math.max(0.35, Math.min(s, 1.1)), sars:9, flas:'#7fc23a', flasA:0.15 });
     komik('HAPŞUUUU!', d.x, d.y-170, '#7fc23a', 46, 0.1);
     mermiler.push({ tip:'sumuk', x:d.x + d.yon*26, y:d.y-100, vx:d.yon*7, vy:-3, g:0.18, r:11, dmg:4, sahip:d, yavas:3 }); },
   // Mahmut Abi
@@ -556,8 +626,8 @@ const OZEL = {
   dis(d){ SES.dis(); laf(d, sec(LAFLAR.mahmutDis)); d.dissiz = 4.5; komik('DİŞLER!', d.x + d.yon*50, d.y-160, '#fff', 40, d.yon*0.1);
     mermiler.push({ tip:'dis', x:d.x + d.yon*28, y:d.y-100, vx:d.yon*6.5, vy:-6, g:0.4, r:13, dmg:10, sahip:d, sekme:2 }); },
   gozluk(d){ SES.gozluk(); laf(d, sec(LAFLAR.mahmutGozluk)); d.kalkan = 4.5; d.parla = 1.2; komik('GÖZLÜK!', d.x, d.y-165, '#ffe066', 40, 0.08); parca(d.x, d.y-110, 10, '#9ad7ff'); },
-  zekiyim(d){ SES.zekiyim(); laf(d, sec(LAFLAR.mahmutZekiyim), 1.5); d.parla = 1.0;
-    efekt({ yavas:0.55, oran:0.3, zoom:1.5, x:d.x, y:d.y-100, sure:0.6, flas:'#ff5f8f', flasA:0.3, sars:8 });
+  zekiyim(d){ const s = SES.zekiyim(); laf(d, sec(LAFLAR.mahmutZekiyim), 1.5); d.parla = Math.max(1.0, s);
+    efekt({ yavas:clamp(s, 0.55, 2.0), oran:0.3, zoom:1.5, x:d.x, y:d.y-100, sure:clamp(s, 0.6, 2.0), flas:'#ff5f8f', flasA:0.3, sars:8 });
     dalgalar.push({ x:d.x, y:d.y-70, r:10, maxR:250, sahip:d, t:0, vurdu:false }); yazi('BEN ÇOK ZEKİYİM!', 1.2, '#ff5f8f', 44); },
 };
 function ozelKullan(d, k){
