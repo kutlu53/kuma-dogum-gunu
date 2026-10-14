@@ -28,9 +28,17 @@ KONTROLLER
 Bilgisayar : ← → yürü, ↑ veya Boşluk zıpla, J yumruk, K savunma, 1-2-3-4 özel güçler
 Telefon    : Ekrandaki tuşlar
 
+TELEFONDA TAM EKRAN
+-------------------
+- Android Chrome: "Dalaş Başlasın" deyince kendiliğinden tam ekrana geçer.
+- iPhone / iPad Safari: Safari tam ekrana izin vermez. Paylaş simgesi > "Ana Ekrana Ekle" de,
+  sonra oyunu ana ekrandaki simgeden aç; o zaman adres çubuğu olmadan tam ekran açılır.
+
 OYUN AKIŞI
 ----------
-- 3 raunt, 2 raunt alan maçı kazanır.
+- Önce ısınma turu: Mahmut Abi saldırmaz, ekranda sırayla 8 görev çıkar (yürü, zıpla, yumruk, savun,
+  4 özel güç). Hepsi denenince ya da "Hazırım" tuşuna basılınca gerçek maç başlar.
+- 3 raunt, 2 raunt alan maçı kazanır. Her raunt başında abi 4 saniye saldırmaz.
 - Mahmut Abi'yi bilgisayar yönetir. Her rauntta ve her kaybedilen maçtan sonra biraz daha yorulur,
   yani çocuk kaybederse bir sonraki maç daha kolay olur.
 - Kuma Ayısı maçı kazanınca Mahmut Abi pes eder, pasta gelir ve doğum günü ekranı açılır.
