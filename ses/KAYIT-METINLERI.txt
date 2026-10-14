@@ -1,0 +1,43 @@
+SES KAYITLARI — bu klasöre atılacak dosyalar
+=============================================
+
+Nasıl çalışır
+-------------
+- Telefonun ses kaydedicisiyle kaydet, dosyayı aşağıdaki isimle bu "ses" klasörüne koy.
+- Uzantı mp3, m4a (iPhone'un kendi kaydı) veya ogg olabilir. Oyun sırayla dener.
+- Olmayan dosya için oyun kendi sentez sesini kullanır, hiçbir şey bozulmaz.
+  Yani 3 tane kaydedip bırakabilirsin, hepsi şart değil.
+- Kısa tut: 0.5 - 2 saniye. Başta ve sonda sessizlik bırakma.
+- Abartılı, çizgi film gibi söyle. Ne kadar rezil o kadar komik.
+
+KUMA AYISI'NIN SESLERİ (çocuk söylesin, ya da sen çocuk sesi taklidiyle)
+------------------------------------------------------------------------
+kuma_gaz        : "PIIIIIRRRRRT!"  (ağızla osuruk sesi, uzun ve titrek) — EN ÖNEMLİSİ
+kuma_lahmacun   : "LAHMACUUUUN!"  (savaş çığlığı gibi)
+kuma_tukur      : "Hıııık... TÜÜÜH!"  (önce burnunu çek, sonra tükür)
+kuma_sumuk      : "HAP-ŞUUUUU!"  (kocaman hapşırık)
+kuma_vurus      : "HIYYAA!"  (yumruk atarken, kısa)
+kuma_ah         : "AH!"  (vurulunca, kısa)
+
+MAHMUT ABİ'NİN SESLERİ (sen söyle)
+----------------------------------
+mahmut_zekiyim  : "BEN ÇOK ZEKİYİM!"  (bağırarak, kendinden emin)
+mahmut_dis      : "Dişlerimi al!"  (dişsiz gibi peltek söylersen daha komik: "Dislerimi al!")
+mahmut_duman    : "Duman geliyoooor!"
+mahmut_gozluk   : "Gözlüğümü taktım, görüyorum seni!"
+mahmut_ah       : "OF!" / "AHH!"  (vurulunca, kısa)
+mahmut_koku     : "ÖFFF! NE KOKU BU! Pencereyi açın!"  (gaz yiyince, burnu tıkalı sesle)
+mahmut_aci      : "ACIIIIII! SU! AYRAN!"  (lahmacun yiyince, ağzı yanmış gibi)
+mahmut_kor      : "GÖREMİYORUM! Gözlüğüm!"  (tükürük gözlüğe gelince)
+mahmut_yapis    : "İĞRENÇ! Yapış yapış oldum!"  (sümük yapışınca)
+mahmut_pes      : "Tamam tamam, pes ettim! İYİ Kİ DOĞDUN KUMA AYISI!"  (maç kazanılınca, 3-4 sn)
+mahmut_kazandi  : "HAHAHA! Dedim ben çok zekiyim diye!"  (çocuk kaybedince)
+
+ORTAK
+-----
+dalas           : "DALAAAŞ!"  (raunt başlarken, spiker gibi)
+kazandi         : "İYİ Kİ DOĞDUUUN!"  (final ekranında, ikiniz birlikte bağırabilirsiniz)
+
+Öncelik sırası (az vaktin varsa)
+--------------------------------
+1. kuma_gaz   2. mahmut_koku   3. mahmut_aci   4. mahmut_zekiyim   5. mahmut_pes   6. kuma_lahmacun
