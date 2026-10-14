@@ -561,7 +561,7 @@ const OZEL = {
     dalgalar.push({ x:d.x, y:d.y-70, r:10, maxR:250, sahip:d, t:0, vurdu:false }); yazi('BEN ÇOK ZEKİYİM!', 1.2, '#ff5f8f', 44); },
 };
 function ozelKullan(d, k){
-  if(d.cd[k] > 0 || d.sersem > 0 || d.durum === 'hit' || d.durum === 'punch' || (durum !== 'dovus' && durum !== 'isinma')) return false;
+  if(d.cd[k] > 0 || d.sersem > 0 || d.durum === 'hit' || d.durum === 'punch' || d.durum === 'ozel' || (durum !== 'dovus' && durum !== 'isinma')) return false;
   d.cd[k] = d.cdSure[k]; d.durum = 'ozel'; d.sure = 0; OZEL[k](d); if(d === kuma) isinmaTamam(k); return true;
 }
 
