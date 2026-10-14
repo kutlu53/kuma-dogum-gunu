@@ -1,0 +1,42 @@
+KUMA AYISI vs MAHMUT ABİ — Doğum Günü Oyunu
+=============================================
+
+NASIL AÇILIR
+------------
+- Bilgisayarda: index.html dosyasına çift tıkla, tarayıcıda açılır. (Chrome / Edge / Firefox)
+- Telefon veya tablette: Bu klasörü (index.html + img klasörü birlikte) telefona kopyala ya da
+  bir web alanına yükle. Telefonu yan çevirince oyun başlar.
+- Klasörün tamamı birlikte taşınmalı: index.html tek başına çalışmaz, img klasörü yanında olmalı.
+
+AYARLAR (index.html içinde, "AYARLAR" yazan bölüm, dosyanın ortalarında)
+-----------------------------------------------------------------------
+  isim      : Finalde yazacak isim. Şu an "Kuma Ayısı". Gerçek adını da yazabilirsin.
+  yas       : Kaç yaşına giriyor. Pastadaki mum sayısı buradan gelir.
+  mesaj     : Mumlar üflenince açılan doğum günü mesajı.
+  gonderen  : Mesajın altındaki imza.
+  rauntSuresi, kazanmakIcin : raunt süresi (saniye) ve maçı almak için gereken raunt sayısı.
+
+Hemen altındaki "LAFLAR" bölümünde karakterlerin birbirine attığı lafları değiştirebilirsin.
+Tırnak içindeki metinleri değiştir, virgülleri bozma.
+
+Dosyayı Not Defteri ile açıp düzenleyebilirsin. Kaydederken "UTF-8" seçili olsun (Türkçe harfler için).
+
+Kısa yol: dosya adresinin sonuna ?isim=Kerem&yas=11 eklersen dosyayı düzenlemeden de isim/yaş değişir.
+
+KONTROLLER
+----------
+Bilgisayar : ← → yürü, ↑ veya Boşluk zıpla, J yumruk, K savunma, 1-2-3-4 özel güçler
+Telefon    : Ekrandaki tuşlar
+
+OYUN AKIŞI
+----------
+- 3 raunt, 2 raunt alan maçı kazanır.
+- Mahmut Abi'yi bilgisayar yönetir. Her rauntta ve her kaybedilen maçtan sonra biraz daha yorulur,
+  yani çocuk kaybederse bir sonraki maç daha kolay olur.
+- Kuma Ayısı maçı kazanınca Mahmut Abi pes eder, pasta gelir ve doğum günü ekranı açılır.
+
+GÖRSELLER
+---------
+img/kuma_kafa.png ve img/mahmut_kafa.png karakter kafalarıdır (32x32 pikselli).
+Değiştirmek istersen aynı isimle kare bir PNG koyman yeter.
+img/foto1-5.jpg final ekranındaki slayt fotoğraflarıdır.
